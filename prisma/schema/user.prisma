@@ -1,0 +1,38 @@
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  name      String?
+  accountType AccountType @default(LOCAL)
+  isEmailVerified Boolean  @default(false)
+  profilePic String?
+  refreshToken String?
+
+  role UserRole @default(USER)
+
+  isBlocked Boolean @default(false)
+  isDeleted Boolean @default(false)
+
+  registerCode String?
+  registerCodeExpiry DateTime?
+  registerCodeToken String?
+
+  resetPasswordCode String?
+  resetPasswordCodeExpiry DateTime?
+  resetPasswordCodeToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relationships
+}
+
+enum AccountType {
+  LOCAL
+  GOOGLE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}

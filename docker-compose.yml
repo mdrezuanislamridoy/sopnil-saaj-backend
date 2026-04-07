@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:18.1-alpine3.23
+    container_name: sopnil-saaj-db
+    restart: always
+    # profiles:
+    #   - dev
+    #   - prod
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '${DB_PORT}:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sopnil-saaj:latest
+    container_name: sopnil-saaj-app
+    restart: always
+    profiles:
+      - prod
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: development
+      PORT: 8989
+      DATABASE_URL: postgresql://username:password@localhost:5433/sopnil-saaj_db?schema=public
+      JWT_SECRET: your_jwt_secret_key_here
+    ports:
+      - '${PORT}:${PORT}'
+
+volumes:
+  pg_data:
