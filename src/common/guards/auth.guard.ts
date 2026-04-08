@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
@@ -17,6 +18,7 @@ export class AuthGuard implements CanActivate {
     private reflector: Reflector,
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private config: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -45,7 +47,9 @@ export class AuthGuard implements CanActivate {
 
     try {
       // Verify token
-      const decoded = this.jwtService.verify(token);
+      const decoded = this.jwtService.verify(token, {
+        secret: this.config.getOrThrow('JWT_ACCESS_SECRET'),
+      });
 
       // Check if user exists and is not deleted
       const user = await this.prisma.client.user.findUnique({
@@ -61,7 +65,7 @@ export class AuthGuard implements CanActivate {
 
       // Check role requirements
       if (requiredRoles && requiredRoles.length > 0) {
-        const userRole = decoded.role;
+        const userRole = user.role;
         if (!requiredRoles.includes(userRole)) {
           throw new ForbiddenException('Insufficient permissions to access this resource');
         }

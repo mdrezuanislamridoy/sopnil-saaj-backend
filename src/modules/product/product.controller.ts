@@ -7,13 +7,14 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
+import { FilterProductDto } from './dto/filter-product.dto';
 import { LogBodyInterceptor } from './log-body.interceptor';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -26,7 +27,6 @@ export class ProductController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create product (Admin)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -45,33 +45,30 @@ export class ProductController {
           example: '[{"size":"S","price":29.99,"comparePrice":39.99,"stock":50}]',
           description: 'JSON string of variants array',
         },
-        image: { type: 'string', format: 'binary' },
+        images: { 
+          type: 'array', 
+          items: { type: 'string', format: 'binary' },
+          description: 'Multiple product images (max 5)'
+        },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('image'), LogBodyInterceptor)
+  @UseInterceptors(FilesInterceptor('images', 5), LogBodyInterceptor)
   create(
     @Body() dto: CreateProductDto,
-    @UploadedFile() image?: Express.Multer.File,
+    @UploadedFiles() images?: Express.Multer.File[],
   ) {
-    return this.productService.create(dto, image);
+    return this.productService.create(dto, images);
   }
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Get all active products' })
-  @ApiQuery({ name: 'featured', required: false, type: Boolean })
-  findAll(@Query('featured') featured?: string) {
-    const isFeatured = featured === 'true' ? true : featured === 'false' ? false : undefined;
-    return this.productService.findAll(isFeatured);
+  @ApiOperation({ summary: 'Get all active products with filters and sorting' })
+  findAll(@Query() filters: FilterProductDto) {
+    return this.productService.findAll(filters);
   }
 
-  @Public()
-  @Get('category/:categoryId')
-  @ApiOperation({ summary: 'Get products by category' })
-  findByCategory(@Param('categoryId') categoryId: string) {
-    return this.productService.findByCategory(categoryId);
-  }
+
 
   @Public()
   @Get(':id')
@@ -82,7 +79,6 @@ export class ProductController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product (Admin)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -101,22 +97,30 @@ export class ProductController {
           example: '[{"size":"S","price":29.99,"comparePrice":39.99,"stock":50}]',
           description: 'JSON string of variants array — replaces all existing variants',
         },
-        image: { type: 'string', format: 'binary' },
+        images: { 
+          type: 'array', 
+          items: { type: 'string', format: 'binary' },
+          description: 'New images to add (max 5 total)'
+        },
+        removeImageIds: {
+          type: 'string',
+          example: '["image-id-1", "image-id-2"]',
+          description: 'JSON array of image IDs to remove'
+        },
       },
     },
   })
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FilesInterceptor('images', 5))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,
-    @UploadedFile() image?: Express.Multer.File,
+    @UploadedFiles() images?: Express.Multer.File[],
   ) {
-    return this.productService.update(id, dto, image);
+    return this.productService.update(id, dto, images);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete product (Admin)' })
   remove(@Param('id') id: string) {
     return this.productService.remove(id);

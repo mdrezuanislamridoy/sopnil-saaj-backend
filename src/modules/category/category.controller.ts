@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto, UpdateCategoryDto } from './dto/category.dto';
 import { Public } from 'src/common/decorators/public.decorator';
@@ -24,7 +24,6 @@ export class CategoryController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create category (Admin)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -62,7 +61,6 @@ export class CategoryController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update category (Admin)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -87,7 +85,6 @@ export class CategoryController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete category (Admin)' })
   remove(@Param('id') id: string) {
     return this.categoryService.remove(id);

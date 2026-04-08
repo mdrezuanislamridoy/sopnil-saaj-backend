@@ -1,9 +1,9 @@
 model Order {
-  id            String      @id @default(uuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status        OrderStatus @default(PENDING)
-  totalAmount   Decimal     @db.Decimal(10, 2)
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal     @db.Decimal(10, 2)
 
   shippingName    String
   shippingPhone   String
@@ -11,8 +11,10 @@ model Order {
   shippingCity    String
   shippingZip     String?
 
-  notes         String?
-  items         OrderItem[]
+  paymentMethod PaymentMethod @default(CASH_ON_DELIVERY)
+
+  notes String?
+  items OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,4 +40,9 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
   REFUNDED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  SSL_COMMERZ
 }

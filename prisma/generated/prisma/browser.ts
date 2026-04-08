@@ -48,6 +48,11 @@ export type OrderItem = Prisma.OrderItemModel
  */
 export type Product = Prisma.ProductModel
 /**
+ * Model ProductImage
+ * 
+ */
+export type ProductImage = Prisma.ProductImageModel
+/**
  * Model ProductVariant
  * 
  */

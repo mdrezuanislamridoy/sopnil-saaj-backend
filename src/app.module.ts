@@ -11,6 +11,9 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { OrderModule } from './modules/order/order.module';
 import { ReviewModule } from './modules/review/review.module';
 import { DatabaseModule } from './services/prisma/database.module';
+import { AuthGuard } from './common/guards/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -20,14 +23,16 @@ import { DatabaseModule } from './services/prisma/database.module';
     SmtpMailModule,
     CloudinaryModule,
     DatabaseModule,
+    AuthModule,
     CategoryModule,
     ProductModule,
     CartModule,
     WishlistModule,
     OrderModule,
     ReviewModule,
+    JwtModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: 'APP_GUARD', useClass: AuthGuard }],
 })
 export class AppModule {}

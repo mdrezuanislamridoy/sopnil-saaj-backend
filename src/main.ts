@@ -3,26 +3,17 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerSetting } from './config/swagger/swagger';
 import { GlobalExceptionFilter } from './filters/exception.filter';
-import { AuthGuard } from './common/guards/auth.guard';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from './services/prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const reflector = app.get(Reflector);
-  const jwtService = app.get(JwtService);
-  const prismaService = app.get(PrismaService);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
 
-  app.useGlobalGuards(new AuthGuard(reflector, jwtService, prismaService));
-
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    transformOptions: {
-      enableImplicitConversion: true,
-    },
-  }));
 
   SwaggerSetting(app);
 

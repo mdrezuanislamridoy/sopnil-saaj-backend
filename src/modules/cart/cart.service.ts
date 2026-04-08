@@ -7,18 +7,13 @@ import {
 import { PrismaService } from 'src/services/prisma/prisma.service';
 import { successResponse } from 'src/common/response';
 import { AddToCartDto, UpdateCartItemDto } from './dto/cart.dto';
+import { handlePrismaError } from 'src/common/utils/prisma-error-handler';
 
 @Injectable()
 export class CartService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private rethrowOrWrap(error: unknown, fallback: string): never {
-    if (
-      error instanceof BadRequestException ||
-      error instanceof NotFoundException
-    ) throw error;
-    throw new InternalServerErrorException(fallback);
-  }
+
 
   private async getOrCreateCart(userId: string) {
     return this.prisma.client.cart.upsert({
@@ -34,7 +29,7 @@ export class CartService {
       const cart = await this.getOrCreateCart(userId);
       return successResponse('Cart fetched', cart);
     } catch (error) {
-      this.rethrowOrWrap(error, 'Failed to fetch cart');
+      handlePrismaError(error, 'Failed to fetch cart');
     }
   }
 
@@ -43,7 +38,8 @@ export class CartService {
       const product = await this.prisma.client.product.findUnique({
         where: { id: dto.productId },
       });
-      if (!product || !product.isActive) throw new NotFoundException('Product not found');
+      if (!product || !product.isActive)
+        throw new NotFoundException('Product not found');
 
       const variant = await this.prisma.client.productVariant.findFirst({
         where: { id: dto.variantId, productId: dto.productId },
@@ -53,7 +49,9 @@ export class CartService {
       const cart = await this.getOrCreateCart(userId);
 
       const existing = await this.prisma.client.cartItem.findUnique({
-        where: { cartId_variantId: { cartId: cart.id, variantId: dto.variantId } },
+        where: {
+          cartId_variantId: { cartId: cart.id, variantId: dto.variantId },
+        },
       });
 
       if (existing) {
@@ -63,19 +61,26 @@ export class CartService {
         });
       } else {
         await this.prisma.client.cartItem.create({
-          data: { cartId: cart.id, productId: dto.productId, variantId: dto.variantId, quantity: dto.quantity ?? 1 },
+          data: {
+            cartId: cart.id,
+            productId: dto.productId,
+            variantId: dto.variantId,
+            quantity: dto.quantity ?? 1,
+          },
         });
       }
 
       return this.getCart(userId);
     } catch (error) {
-      this.rethrowOrWrap(error, 'Failed to add item to cart');
+      handlePrismaError(error, 'Failed to add item to cart');
     }
   }
 
   async updateItem(userId: string, itemId: string, dto: UpdateCartItemDto) {
     try {
-      const cart = await this.prisma.client.cart.findUnique({ where: { userId } });
+      const cart = await this.prisma.client.cart.findUnique({
+        where: { userId },
+      });
       if (!cart) throw new NotFoundException('Cart not found');
 
       const item = await this.prisma.client.cartItem.findFirst({
@@ -90,13 +95,15 @@ export class CartService {
 
       return this.getCart(userId);
     } catch (error) {
-      this.rethrowOrWrap(error, 'Failed to update cart item');
+      handlePrismaError(error, 'Failed to update cart item');
     }
   }
 
   async removeItem(userId: string, itemId: string) {
     try {
-      const cart = await this.prisma.client.cart.findUnique({ where: { userId } });
+      const cart = await this.prisma.client.cart.findUnique({
+        where: { userId },
+      });
       if (!cart) throw new NotFoundException('Cart not found');
 
       const item = await this.prisma.client.cartItem.findFirst({
@@ -107,19 +114,23 @@ export class CartService {
       await this.prisma.client.cartItem.delete({ where: { id: itemId } });
       return this.getCart(userId);
     } catch (error) {
-      this.rethrowOrWrap(error, 'Failed to remove cart item');
+      handlePrismaError(error, 'Failed to remove cart item');
     }
   }
 
   async clearCart(userId: string) {
     try {
-      const cart = await this.prisma.client.cart.findUnique({ where: { userId } });
+      const cart = await this.prisma.client.cart.findUnique({
+        where: { userId },
+      });
       if (cart) {
-        await this.prisma.client.cartItem.deleteMany({ where: { cartId: cart.id } });
+        await this.prisma.client.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
       }
       return successResponse('Cart cleared');
     } catch (error) {
-      this.rethrowOrWrap(error, 'Failed to clear cart');
+      handlePrismaError(error, 'Failed to clear cart');
     }
   }
 }

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ReviewService } from './review.service';
 import { CreateReviewDto, UpdateReviewDto } from './dto/review.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -13,8 +13,7 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post()
-  @Roles(UserRole.USER, UserRole.ADMIN)
-  @ApiBearerAuth()
+  @Roles(UserRole.USER)
   @ApiOperation({ summary: 'Submit a review (must have purchased the product)' })
   create(
     @CurrentUser('sub') userId: string,
@@ -32,8 +31,7 @@ export class ReviewController {
   }
 
   @Patch(':reviewId')
-  @Roles(UserRole.USER, UserRole.ADMIN)
-  @ApiBearerAuth()
+  @Roles(UserRole.USER)
   @ApiOperation({ summary: 'Update your review' })
   update(
     @CurrentUser('sub') userId: string,
@@ -44,8 +42,7 @@ export class ReviewController {
   }
 
   @Delete(':reviewId')
-  @Roles(UserRole.USER, UserRole.ADMIN)
-  @ApiBearerAuth()
+  @Roles(UserRole.USER)
   @ApiOperation({ summary: 'Delete a review (own or admin)' })
   remove(
     @CurrentUser('sub') userId: string,

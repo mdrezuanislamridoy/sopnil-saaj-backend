@@ -22,6 +22,14 @@ export const OrderStatus = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 
+export const PaymentMethod = {
+  CASH_ON_DELIVERY: 'CASH_ON_DELIVERY',
+  SSL_COMMERZ: 'SSL_COMMERZ'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
+
+
 export const AccountType = {
   LOCAL: 'LOCAL',
   GOOGLE: 'GOOGLE'
