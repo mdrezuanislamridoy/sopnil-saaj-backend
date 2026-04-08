@@ -25,6 +25,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // relationships
+  cart      Cart?
+  wishlist  Wishlist?
+  orders    Order[]
+  reviews   Review[]
 }
 
 enum AccountType {
