@@ -13,7 +13,7 @@ import { ReviewModule } from './modules/review/review.module';
 import { DatabaseModule } from './services/prisma/database.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule } from './modules/auth/auth.modules';
 
 @Module({
   imports: [
