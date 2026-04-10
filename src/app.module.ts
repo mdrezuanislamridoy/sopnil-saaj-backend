@@ -14,6 +14,8 @@ import { DatabaseModule } from './services/prisma/database.module';
 import { AuthGuard } from './common/guards/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './modules/auth/auth.modules';
+import { UserModule } from './modules/user/user.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { AuthModule } from './modules/auth/auth.modules';
     CloudinaryModule,
     DatabaseModule,
     AuthModule,
+    UserModule,
+    AdminModule,
     CategoryModule,
     ProductModule,
     CartModule,

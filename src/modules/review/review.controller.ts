@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ReviewService } from './review.service';
 import { CreateReviewDto, UpdateReviewDto } from './dto/review.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -25,9 +25,17 @@ export class ReviewController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Get all reviews for a product' })
-  getProductReviews(@Param('productId') productId: string) {
-    return this.reviewService.getProductReviews(productId);
+  @ApiOperation({ summary: 'Get all reviews for a product with pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 5 })
+  getProductReviews(
+    @Param('productId') productId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 5;
+    return this.reviewService.getProductReviews(productId, pageNum, limitNum);
   }
 
   @Patch(':reviewId')

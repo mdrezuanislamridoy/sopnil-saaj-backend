@@ -55,27 +55,42 @@ export class ReviewService {
     }
   }
 
-  async getProductReviews(productId: string) {
+  async getProductReviews(productId: string, page: number = 1, limit: number = 5) {
     try {
       const product = await this.prisma.client.product.findUnique({
         where: { id: productId },
       });
       if (!product) throw new NotFoundException('Product not found');
 
-      const reviews = await this.prisma.client.review.findMany({
-        where: { productId },
-        include: { user: { select: { id: true, name: true, profilePic: true } } },
-        orderBy: { createdAt: 'desc' },
-      });
+      const skip = (page - 1) * limit;
+
+      const [reviews, totalReviews] = await Promise.all([
+        this.prisma.client.review.findMany({
+          where: { productId },
+          include: { user: { select: { id: true, name: true, profilePic: true } } },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.client.review.count({ where: { productId } }),
+      ]);
 
       const avgRating =
-        reviews.length > 0
-          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        totalReviews > 0
+          ? (await this.prisma.client.review.aggregate({
+              where: { productId },
+              _avg: { rating: true },
+            }))._avg.rating || 0
           : 0;
 
       return successResponse('Reviews fetched', {
         reviews,
-        totalReviews: reviews.length,
+        pagination: {
+          page,
+          limit,
+          totalReviews,
+          totalPages: Math.ceil(totalReviews / limit),
+        },
         averageRating: Math.round(avgRating * 10) / 10,
       });
     } catch (error) {
