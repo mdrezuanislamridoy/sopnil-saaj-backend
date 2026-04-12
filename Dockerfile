@@ -2,31 +2,26 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# System dependency (Prisma safe)
+# Prisma safe lib
 RUN apk add --no-cache libc6-compat
 
-# Copy dependency files (npm)
+# Copy dependency files
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install deps
 RUN npm install
 
-# Copy prisma schema আগে (important for generate cache)
-COPY prisma ./prisma
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy rest of the project
+# 🔥 Copy EVERYTHING আগে (important fix)
 COPY . .
+
+# Generate Prisma client (এখন schema পাওয়া যাবে)
+RUN npx prisma generate
 
 # Build NestJS
 RUN npm run build
 
-# Production env
 ENV NODE_ENV=production
 
 EXPOSE 8888
 
-# Run migration + start app
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
