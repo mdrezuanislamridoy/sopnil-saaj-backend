@@ -5,22 +5,19 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install system deps (Prisma মাঝে মাঝে লাগে)
+# প্রয়োজনীয় system lib (Prisma এর জন্য safe)
 RUN apk add --no-cache libc6-compat
 
-# Copy only dependency files (better caching)
+# Dependency files copy (cache optimization)
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install ALL deps (dev + prod লাগে build এর জন্য)
 RUN npm install
 
-# Copy rest of the project
+# Project files copy
 COPY . .
 
-# Set env for prisma
-ENV DATABASE_URL=postgresql://postgres:postgres@db:5432/app
-
-# Generate Prisma client
+# Prisma client generate (IMPORTANT)
 RUN npx prisma generate
 
 # Build NestJS app
@@ -36,22 +33,20 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install minimal deps
+# minimal প্রয়োজনীয় lib
 RUN apk add --no-cache libc6-compat
 
-# Copy necessary files from builder
+# Only required files copy
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Set env again (important)
+# ⚠️ DATABASE URL (change in production)
 ENV DATABASE_URL=postgresql://postgres:postgres@db:5432/app
-
-# Ensure Prisma client exists in runtime
-RUN npx prisma generate
 
 EXPOSE 8080
 
+# Start app
 CMD ["node", "dist/src/main.js"]
