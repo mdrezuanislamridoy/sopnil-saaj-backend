@@ -16,12 +16,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './modules/auth/auth.modules';
 import { UserModule } from './modules/user/user.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { RenderScheduler } from './services/cron/render-scheduler';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     SmtpMailModule,
     CloudinaryModule,
     DatabaseModule,
@@ -34,9 +37,13 @@ import { AdminModule } from './modules/admin/admin.module';
     WishlistModule,
     OrderModule,
     ReviewModule,
-    JwtModule
+    JwtModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: 'APP_GUARD', useClass: AuthGuard }],
+  providers: [
+    AppService,
+    RenderScheduler,
+    { provide: 'APP_GUARD', useClass: AuthGuard },
+  ],
 })
 export class AppModule {}
