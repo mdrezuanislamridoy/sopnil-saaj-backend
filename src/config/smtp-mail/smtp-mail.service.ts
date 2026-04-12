@@ -7,15 +7,18 @@ export class SmtpMailService {
   private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    });
+   this.transporter = nodemailer.createTransport({
+     host: 'smtp-relay.brevo.com',
+     port: 587,
+     secure: false,
+     auth: {
+       user: process.env.MAIL_USER,
+       pass: process.env.MAIL_PASS,
+     },
+     connectionTimeout: 10000, // 🔥 important
+     greetingTimeout: 10000,
+     socketTimeout: 10000,
+   });
   }
 
   async sendMail(to: string, subject: string, html: string) {
