@@ -49,4 +49,4 @@ ENV DATABASE_URL=postgresql://postgres:postgres@db:5432/app
 EXPOSE 8080
 
 # Start app
-CMD ["node", "dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
