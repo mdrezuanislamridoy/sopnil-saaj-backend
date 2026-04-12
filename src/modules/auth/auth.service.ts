@@ -346,6 +346,8 @@ export class AuthService {
         where: { email: dto.email },
       });
 
+      console.log(user);
+
       // Prevent email enumeration
       if (!user || !user.isEmailVerified) {
         return successResponse(
@@ -368,6 +370,8 @@ export class AuthService {
         },
       );
     } catch (error) {
+      console.log(error);
+      
       if (
         error instanceof NotFoundException ||
         error instanceof BadRequestException ||
@@ -376,6 +380,8 @@ export class AuthService {
       ) {
         throw error;
       }
+
+      
       throw new InternalServerErrorException(
         'Failed to process forgot password request',
       );
