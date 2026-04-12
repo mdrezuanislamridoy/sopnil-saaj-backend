@@ -1,7 +1,6 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-// import { ConfigService } from '@nestjs/config';
-import * as nodemailer from "nodemailer";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 @Injectable()
 export class SmtpMailService {
@@ -9,10 +8,9 @@ export class SmtpMailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      // service: 'gmail',
-      host: process.env.SMTP_HOST || "smtp.hostinger.com",
-      port: 465,
-      secure: true,
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
@@ -22,18 +20,17 @@ export class SmtpMailService {
 
   async sendMail(to: string, subject: string, html: string) {
     try {
-      const info = await this.transporter.sendMail({
-        from: process.env.MAIL_USER,
+      return await this.transporter.sendMail({
+        from: `"My App" <${process.env.MAIL_USER}>`,
         to,
         subject,
         html,
       });
-      return info;
     } catch (error) {
-      console.log(error);
+      console.log('BREVO ERROR:', error);
 
       throw new HttpException(
-        `Failed to send email`,
+        'Failed to send email',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
