@@ -1,41 +1,51 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Resend } from 'resend';
 
 @Injectable()
 export class SmtpMailService {
-  private transporter: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
+  private resend: Resend;
 
   constructor() {
-   this.transporter = nodemailer.createTransport({
-     host: 'smtp-relay.brevo.com',
-     port: 587,
-     secure: false,
-     auth: {
-       user: process.env.MAIL_USER,
-       pass: process.env.MAIL_PASS,
-     },
-     connectionTimeout: 10000, // 🔥 important
-     greetingTimeout: 10000,
-     socketTimeout: 10000,
-   });
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is missing in environment variables');
+    }
+
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   async sendMail(to: string, subject: string, html: string) {
     try {
-      return await this.transporter.sendMail({
-        from: `"My App" <${process.env.MAIL_USER}>`,
+      const response = await this.resend.emails.send({
+        from: "Sopnil Saaj <" + (process.env.EMAIL_FROM || 'onboarding@resend.dev') + '>',
         to,
         subject,
         html,
       });
+
+      return {
+        success: true,
+        data: response,
+      };
     } catch (error) {
-      console.log('BREVO ERROR:', error);
+      console.log('RESEND ERROR:', error);
 
       throw new HttpException(
         'Failed to send email',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  // 🔥 Optional helper (OTP use case)
+  async sendOtp(to: string, otp: string) {
+    const html = `
+      <div style="font-family: Arial; padding: 20px;">
+        <h2>Your OTP Code</h2>
+        <p style="font-size: 18px;">${otp}</p>
+        <p>This code will expire soon.</p>
+      </div>
+    `;
+
+    return this.sendMail(to, 'OTP Verification Code', html);
   }
 }
