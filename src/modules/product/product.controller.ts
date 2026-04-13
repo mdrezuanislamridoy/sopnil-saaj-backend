@@ -15,7 +15,6 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/s
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { FilterProductDto } from './dto/filter-product.dto';
-import { LogBodyInterceptor } from './log-body.interceptor';
 import { Public } from 'src/common/decorators/public.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'prisma/generated/prisma/enums';
@@ -53,7 +52,9 @@ export class ProductController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 5), LogBodyInterceptor)
+  @UseInterceptors(FilesInterceptor('images', 5, {
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+  }))
   create(
     @Body() dto: CreateProductDto,
     @UploadedFiles() images?: Express.Multer.File[],
@@ -67,8 +68,6 @@ export class ProductController {
   findAll(@Query() filters: FilterProductDto) {
     return this.productService.findAll(filters);
   }
-
-
 
   @Public()
   @Get(':id')
@@ -110,7 +109,9 @@ export class ProductController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 5))
+  @UseInterceptors(FilesInterceptor('images', 5, {
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
+  }))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,

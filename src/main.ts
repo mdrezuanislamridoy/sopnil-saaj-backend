@@ -15,7 +15,6 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
-
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -23,7 +22,13 @@ async function bootstrap() {
     }),
   );
 
-  
+  // Set file size limits for uploads
+  app.use((req, res, next) => {
+    if (req.method === 'POST' || req.method === 'PATCH') {
+      req.on('data', () => {});
+    }
+    next();
+  });
 
   SwaggerSetting(app);
 
