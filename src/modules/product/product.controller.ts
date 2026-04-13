@@ -10,7 +10,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
@@ -52,9 +52,7 @@ export class ProductController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 5, {
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
-  }))
+  @UseInterceptors(FilesInterceptor('images', 5))
   create(
     @Body() dto: CreateProductDto,
     @UploadedFiles() images?: Express.Multer.File[],
@@ -109,9 +107,7 @@ export class ProductController {
       },
     },
   })
-  @UseInterceptors(FilesInterceptor('images', 5, {
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB per file
-  }))
+  @UseInterceptors(FilesInterceptor('images', 5))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,

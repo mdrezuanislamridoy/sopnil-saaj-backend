@@ -7,7 +7,7 @@ import { GlobalExceptionFilter } from './filters/exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // cros setup
+  // CORS setup
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -15,6 +15,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -22,16 +23,10 @@ async function bootstrap() {
     }),
   );
 
-  // Set file size limits for uploads
-  app.use((req, res, next) => {
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      req.on('data', () => {});
-    }
-    next();
-  });
-
+  // Swagger setup
   SwaggerSetting(app);
 
+  // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000, () => {
