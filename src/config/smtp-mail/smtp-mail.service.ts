@@ -1,22 +1,26 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Resend } from 'resend';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class SmtpMailService {
-  private resend: Resend;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error('RESEND_API_KEY is missing in environment variables');
-    }
-
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_LOGIN,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
   }
 
   async sendMail(to: string, subject: string, html: string) {
     try {
-      const response = await this.resend.emails.send({
-        from: "Sopnil Saaj <" + (process.env.EMAIL_FROM || 'onboarding@resend.dev') + '>',
+      const response = await this.transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'noreply@sopnilsaaj.com',
         to,
         subject,
         html,
@@ -27,7 +31,7 @@ export class SmtpMailService {
         data: response,
       };
     } catch (error) {
-      console.log('RESEND ERROR:', error);
+      console.log('EMAIL ERROR:', error);
 
       throw new HttpException(
         'Failed to send email',
@@ -36,7 +40,6 @@ export class SmtpMailService {
     }
   }
 
-  // 🔥 Optional helper (OTP use case)
   async sendOtp(to: string, otp: string) {
     const html = `
       <div style="font-family: Arial; padding: 20px;">
