@@ -27,6 +27,16 @@ export class OrderService {
     throw new InternalServerErrorException(fallback);
   }
 
+  private generateOrderId(): string {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const timestamp = Date.now().toString(36).toUpperCase().slice(-6);
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `ORD-${year}${month}${day}-${timestamp}${random}`;
+  }
+
   async createFromCart(userId: string, dto: CreateOrderDto) {
     try {
       // Validate that either cartItemIds or directItems is provided
@@ -116,6 +126,7 @@ export class OrderService {
       // Create order
       const order = await this.prisma.client.order.create({
         data: {
+          id: this.generateOrderId(),
           userId,
           totalAmount: new Decimal(totalAmount),
           shippingName: dto.shippingName,
@@ -129,7 +140,7 @@ export class OrderService {
             create: orderItems,
           },
         },
-        include: { items: { include: { product: true, variant: true } } },
+        include: { items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } }, variant: true } } },
       });
 
       // Handle payment based on method
@@ -179,7 +190,7 @@ export class OrderService {
     try {
       const orders = await this.prisma.client.order.findMany({
         where: { userId },
-        include: { items: { include: { product: true, variant: true } } },
+        include: { items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } }, variant: true } } },
         orderBy: { createdAt: 'desc' },
       });
       return successResponse('Orders fetched', orders);
@@ -192,7 +203,7 @@ export class OrderService {
     try {
       const order = await this.prisma.client.order.findFirst({
         where: { id: orderId, userId },
-        include: { items: { include: { product: true, variant: true } } },
+        include: { items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } }, variant: true } } },
       });
       if (!order) throw new NotFoundException('Order not found');
       return successResponse('Order fetched', order);
@@ -205,7 +216,7 @@ export class OrderService {
     try {
       const orders = await this.prisma.client.order.findMany({
         include: {
-          items: { include: { product: true, variant: true } },
+          items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } }, variant: true } },
           user: { select: { id: true, name: true, email: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -283,6 +294,27 @@ export class OrderService {
       return successResponse('Payment failed, order cancelled', null);
     } catch (error) {
       this.rethrowOrWrap(error, 'Failed to handle payment failure');
+    }
+  }
+
+  async cancelOrder(userId: string, orderId: string) {
+    try {
+      const order = await this.prisma.client.order.findFirst({
+        where: { id: orderId, userId },
+      });
+      if (!order) throw new NotFoundException('Order not found');
+
+      if (order.status !== 'PENDING') {
+        throw new BadRequestException('Only PENDING orders can be cancelled');
+      }
+
+      const updated = await this.prisma.client.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
+      });
+      return successResponse('Order cancelled successfully', updated);
+    } catch (error) {
+      this.rethrowOrWrap(error, 'Failed to cancel order');
     }
   }
 }

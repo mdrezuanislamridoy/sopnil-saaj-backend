@@ -19,7 +19,7 @@ export class CartService {
       where: { userId },
       create: { userId },
       update: {},
-      include: { items: { include: { product: true, variant: true } } },
+      include: { items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } }, variant: true } } },
     });
   }
 

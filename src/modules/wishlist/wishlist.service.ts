@@ -25,7 +25,7 @@ export class WishlistService {
       where: { userId },
       create: { userId },
       update: {},
-      include: { items: { include: { product: true } } },
+      include: { items: { include: { product: { include: { images: { orderBy: { order: 'asc' } } } } } } },
     });
   }
 

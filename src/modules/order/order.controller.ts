@@ -67,4 +67,11 @@ export class OrderController {
   paymentCancel(@Query('order_id') orderId: string) {
     return this.orderService.handlePaymentFailure(orderId);
   }
+
+  @Patch('my/:orderId/cancel')
+  @Roles(UserRole.USER)
+  @ApiOperation({ summary: 'Cancel PENDING order' })
+  cancelOrder(@CurrentUser('sub') userId: string, @Param('orderId') orderId: string) {
+    return this.orderService.cancelOrder(userId, orderId);
+  }
 }
