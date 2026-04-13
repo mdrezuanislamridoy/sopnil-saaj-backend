@@ -33,14 +33,21 @@ export class ProductService {
     return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
   }
 
-
-
   async create(dto: CreateProductDto, images?: Express.Multer.File[]) {
     try {
-      console.log('Received DTO:', JSON.stringify(dto, null, 2));
-      console.log('Variants:', dto.variants);
-      console.log('Images count:', images?.length ?? 0);
+      console.log('[ProductService] Create request received');
+      console.log('[ProductService] DTO:', JSON.stringify(dto, null, 2));
+      console.log('[ProductService] Images count:', images?.length ?? 0);
       
+      if (images && images.length > 0) {
+        console.log('[ProductService] Image details:', images.map(img => ({
+          fieldname: img.fieldname,
+          originalname: img.originalname,
+          size: img.size,
+          mimetype: img.mimetype,
+        })));
+      }
+
       const slug = dto.slug ?? this.toSlug(dto.name);
 
       const existing = await this.prisma.client.product.findUnique({ where: { slug } });
@@ -57,14 +64,24 @@ export class ProductService {
         if (images.length > 5) {
           throw new BadRequestException('Maximum 5 images allowed');
         }
+        
+        console.log('[ProductService] Starting image uploads to Cloudinary...');
         for (let i = 0; i < images.length; i++) {
-          const uploaded = await this.cloudinary.uploadFile(images[i], 'products');
-          uploadedImages.push({
-            url: uploaded.url,
-            publicId: uploaded.publicId,
-            order: i,
-          });
+          try {
+            console.log(`[ProductService] Uploading image ${i + 1}/${images.length}...`);
+            const uploaded = await this.cloudinary.uploadFile(images[i], 'products');
+            console.log(`[ProductService] Image ${i + 1} uploaded successfully:`, uploaded);
+            uploadedImages.push({
+              url: uploaded.url,
+              publicId: uploaded.publicId,
+              order: i,
+            });
+          } catch (error) {
+            console.error(`[ProductService] Failed to upload image ${i + 1}:`, error);
+            throw error;
+          }
         }
+        console.log('[ProductService] All images uploaded successfully');
       }
 
       const product = await this.prisma.client.product.create({
@@ -90,8 +107,10 @@ export class ProductService {
         include: productInclude,
       });
 
+      console.log('[ProductService] Product created successfully:', product.id);
       return successResponse('Product created', product);
     } catch (error) {
+      console.error('[ProductService] Create error:', error);
       handlePrismaError(error, 'Failed to create product');
     }
   }
@@ -292,8 +311,6 @@ export class ProductService {
       handlePrismaError(error, 'Failed to fetch product');
     }
   }
-
-
 
   async update(id: string, dto: UpdateProductDto, images?: Express.Multer.File[]) {
     try {
