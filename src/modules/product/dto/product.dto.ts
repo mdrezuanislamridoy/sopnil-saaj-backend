@@ -33,6 +33,12 @@ export class ProductVariantDto {
   @IsOptional()
   comparePrice?: number;
 
+  @ApiPropertyOptional({ example: 'Red' })
+  @Expose()
+  @IsString()
+  @IsOptional()
+  color?: string;
+
   @ApiPropertyOptional({ example: 100 })
   @Expose()
   @Type(() => Number)
@@ -66,8 +72,10 @@ export class CreateProductDto {
   @ApiPropertyOptional({ example: false })
   @Transform(({ value }) => {
     console.log('isFeatured raw value:', value, 'type:', typeof value);
-    if (value === 'true' || value === true || value === '1' || value === 1) return true;
-    if (value === 'false' || value === false || value === '0' || value === 0) return false;
+    if (value === 'true' || value === true || value === '1' || value === 1)
+      return true;
+    if (value === 'false' || value === false || value === '0' || value === 0)
+      return false;
     if (value === undefined || value === null || value === '') return undefined;
     return value;
   })
@@ -86,7 +94,9 @@ export class CreateProductDto {
         const decoded = value.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
         const parsed = JSON.parse(decoded);
         if (Array.isArray(parsed)) {
-          return plainToInstance(ProductVariantDto, parsed, { excludeExtraneousValues: false });
+          return plainToInstance(ProductVariantDto, parsed, {
+            excludeExtraneousValues: false,
+          });
         }
         return parsed;
       } catch (e) {
@@ -105,8 +115,10 @@ export class CreateProductDto {
 export class UpdateProductDto extends PartialType(CreateProductDto) {
   @ApiPropertyOptional()
   @Transform(({ value }) => {
-    if (value === 'true' || value === true || value === '1' || value === 1) return true;
-    if (value === 'false' || value === false || value === '0' || value === 0) return false;
+    if (value === 'true' || value === true || value === '1' || value === 1)
+      return true;
+    if (value === 'false' || value === false || value === '0' || value === 0)
+      return false;
     return value;
   })
   @IsBoolean()

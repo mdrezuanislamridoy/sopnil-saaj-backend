@@ -183,6 +183,7 @@ export const ProductVariantScalarFieldEnum = {
   price: 'price',
   comparePrice: 'comparePrice',
   stock: 'stock',
+  color: 'color',
   productId: 'productId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -197,6 +198,7 @@ export const ReviewScalarFieldEnum = {
   comment: 'comment',
   userId: 'userId',
   productId: 'productId',
+  featuredReview: 'featuredReview',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

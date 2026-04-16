@@ -41,7 +41,7 @@ export class ProductController {
         categoryId: { type: 'string', example: 'uuid-of-category' },
         variants: {
           type: 'string',
-          example: '[{"size":"S","price":29.99,"comparePrice":39.99,"stock":50}]',
+          example: '[{"size":"S","price":29.99,"comparePrice":39.99,"color":"Red","stock":50}]',
           description: 'JSON string of variants array',
         },
         images: { 
@@ -91,7 +91,7 @@ export class ProductController {
         categoryId: { type: 'string' },
         variants: {
           type: 'string',
-          example: '[{"size":"S","price":29.99,"comparePrice":39.99,"stock":50}]',
+          example: '[{"size":"S","price":29.99,"comparePrice":39.99,"color":"Red","stock":50}]',
           description: 'JSON string of variants array — replaces all existing variants',
         },
         images: { 

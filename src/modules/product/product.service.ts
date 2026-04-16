@@ -99,7 +99,8 @@ export class ProductService {
             create: dto.variants.map((v) => ({
               size: v.size,
               price: v.price,
-              comparePrice: v.comparePrice,
+              ...(v.color && { color: v.color }),
+              ...(v.comparePrice && { comparePrice: v.comparePrice }),
               stock: v.stock ?? 0,
             })),
           },
@@ -379,7 +380,8 @@ export class ProductService {
               create: variants.map((v) => ({
                 size: v.size,
                 price: v.price,
-                comparePrice: v.comparePrice,
+                ...(v.color && { color: v.color }),
+                ...(v.comparePrice && { comparePrice: v.comparePrice }),
                 stock: v.stock ?? 0,
               })),
             },

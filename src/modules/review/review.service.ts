@@ -134,4 +134,25 @@ export class ReviewService {
       this.rethrowOrWrap(error, 'Failed to delete review');
     }
   }
+
+  async toggleFeature(reviewId: string) { 
+    try {
+      const review = await this.prisma.client.review.findUnique({
+        where: { id: reviewId },
+      });
+      if (!review) throw new NotFoundException('Review not found');
+
+      const updated = await this.prisma.client.review.update({
+        where: { id: reviewId },
+        data: { featuredReview: !review.featuredReview },
+      });
+
+      return successResponse(
+        `Review ${updated.featuredReview ? 'added to featured' : 'removed from featured'} successfully`,
+        updated,
+      );
+    } catch (error) {
+      this.rethrowOrWrap(error, 'Failed to feature review');
+    }
+  }
 }

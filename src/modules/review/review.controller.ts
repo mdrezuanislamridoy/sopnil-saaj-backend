@@ -59,4 +59,13 @@ export class ReviewController {
   ) {
     return this.reviewService.remove(userId, reviewId, role === UserRole.ADMIN);
   }
+  
+  @Patch(':reviewId/feature')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Feature/unfeature a review' })
+  toggleFeature(
+    @Param('reviewId') reviewId: string,
+  ) {
+    return this.reviewService.toggleFeature(reviewId);
+  }
 }
